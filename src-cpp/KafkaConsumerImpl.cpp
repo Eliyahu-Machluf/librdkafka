@@ -33,15 +33,15 @@
 
 RdKafka::KafkaConsumer::~KafkaConsumer () {}
 
-RdKafka::KafkaConsumer *RdKafka::KafkaConsumer::create (RdKafka::Conf *conf,
+RdKafka::KafkaConsumer *RdKafka::KafkaConsumer::create (const RdKafka::Conf *conf,
                                                         std::string &errstr) {
   char errbuf[512];
-  RdKafka::ConfImpl *confimpl = dynamic_cast<RdKafka::ConfImpl *>(conf);
+  const RdKafka::ConfImpl *confimpl = dynamic_cast<const RdKafka::ConfImpl *>(conf);
   RdKafka::KafkaConsumerImpl *rkc = new RdKafka::KafkaConsumerImpl();
   rd_kafka_conf_t *rk_conf = NULL;
   size_t grlen;
 
-  if (!confimpl->rk_conf_) {
+  if (!confimpl || !confimpl->rk_conf_) {
     errstr = "Requires RdKafka::Conf::CONF_GLOBAL object";
     delete rkc;
     return NULL;
@@ -63,6 +63,8 @@ RdKafka::KafkaConsumer *RdKafka::KafkaConsumer::create (RdKafka::Conf *conf,
   if (!(rk = rd_kafka_new(RD_KAFKA_CONSUMER, rk_conf,
                           errbuf, sizeof(errbuf)))) {
     errstr = errbuf;
+    // rd_kafka_new() takes ownership only if succeeds
+    rd_kafka_conf_destroy(rk_conf);
     delete rkc;
     return NULL;
   }
@@ -254,4 +256,7 @@ RdKafka::KafkaConsumerImpl::close () {
 }
 
 
+
+
+RdKafka::ConsumerGroupMetadata::~ConsumerGroupMetadata () {}
 

@@ -47,7 +47,7 @@
 #include "rdkafka.h"  /* for Kafka driver */
 
 
-static int run = 1;
+static volatile sig_atomic_t run = 1;
 static rd_kafka_t *rk;
 static int exit_eof = 0;
 static int wait_eof = 0;  /* number of partitions awaiting EOF */
@@ -472,15 +472,6 @@ int main (int argc, char **argv) {
                         group = "rdkafka_consumer_example";
                 if (rd_kafka_conf_set(conf, "group.id", group,
                                       errstr, sizeof(errstr)) !=
-                    RD_KAFKA_CONF_OK) {
-                        fprintf(stderr, "%% %s\n", errstr);
-                        exit(1);
-                }
-
-                /* Consumer groups always use broker based offset storage */
-                if (rd_kafka_topic_conf_set(topic_conf, "offset.store.method",
-                                            "broker",
-                                            errstr, sizeof(errstr)) !=
                     RD_KAFKA_CONF_OK) {
                         fprintf(stderr, "%% %s\n", errstr);
                         exit(1);
